@@ -1,25 +1,72 @@
-import logo from './logo.svg';
-import './App.css';
+import React, {Component} from 'react'
+import API from './utils/API'
+import Wrapper from './components/Wrapper'
+import Table from './components/Table'
+import Header from './components/Header'
+import Search from './components/Search'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+  
+  state = {
+    countrySearched: '',
+    employees: [],
+    shownEmployees: []
+  }
+
+  componentDidMount() {
+    API.randomEmployee()
+      .then(response => {
+        this.setState({ 'employees': response.data.results, 'shownEmployees': response.data.results })
+      })
+      .catch(err => console.log(err))
+  }
+
+  updateEmployees() {
+    const filteredResults = this.state.employees.filter(employee => employee.location.country === this.state.countrySearched)
+    console.log('results', filteredResults)
+    if(filteredResults.length) {
+      this.setState({'shownEmployees': filteredResults})
+    } else {
+      this.setState({'shownEmployees': this.state.employees})
+    }
+  }
+
+  findCountry = (country) => {
+    this.setState({'countrySearched': country}, () => {
+      this.updateEmployees()
+    })
+  }
+
+  sortByFirst = () => {
+    console.log(this.state)
+    const sortedByFirstName = this.state.shownEmployees.sort((a, b) => {
+      if(a.name.first < b.name.first) { return -1; }
+      if(a.name.first > b.name.first) { return 1; }
+      return 0;
+    })
+    console.log(sortedByFirstName)
+    this.setState({'shownEmployees': sortedByFirstName})
+  }
+
+  sortByLast = () => {
+    console.log(this.state)
+    const sortedByLastName = this.state.shownEmployees.sort((a, b) => {
+      if(a.name.last < b.name.last) { return -1; }
+      if(a.name.last > b.name.last) { return 1; }
+      return 0;
+    })
+    console.log(sortedByLastName)
+    this.setState({'shownEmployees': sortedByLastName})
+  }
+
+  render() {
+    return (
+          <Wrapper>
+            <Header />
+            <Search findCountry={this.findCountry} />
+            <Table shownEmployees={this.state.shownEmployees} sortByFirst={this.sortByFirst} sortByLast={this.sortByLast} />
+          </Wrapper>
+    );
+  }
 }
-
 export default App;
